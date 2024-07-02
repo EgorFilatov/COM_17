@@ -1,0 +1,22 @@
+../Core/Src/main.cpp:64:6:void spiDeviceInit()	1
+../Core/Src/main.cpp:85:6:void spiTxRx()	8
+../Core/Src/main.cpp:113:6:void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef*)	1
+../Core/Src/main.cpp:117:6:void HAL_SPI_ErrorCallback(SPI_HandleTypeDef*)	1
+../Core/Src/main.cpp:121:6:void processSpiRxData()	6
+../Core/Src/main.cpp:148:6:void setUartSendNeededOnTimeEvent()	5
+../Core/Src/main.cpp:162:6:void HAL_IncTick()	1
+../Core/Src/main.cpp:168:6:void uartTx()	8
+../Core/Src/main.cpp:198:6:void HAL_UART_TxCpltCallback(UART_HandleTypeDef*)	1
+../Core/Src/main.cpp:202:6:void uartRx()	2
+../Core/Src/main.cpp:212:6:void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)	1
+../Core/Src/main.cpp:216:6:void HAL_UART_ErrorCallback(UART_HandleTypeDef*)	1
+../Core/Src/main.cpp:225:6:void processUartRxBuff()	5
+../Core/Src/main.cpp:245:5:int main()	1
+../Core/Src/main.cpp:271:6:void SystemClock_Config()	3
+../Core/Src/main.cpp:322:13:void MX_SPI1_Init()	2
+../Core/Src/main.cpp:360:13:void MX_UART5_Init()	2
+../Core/Src/main.cpp:391:13:void MX_DMA_Init()	1
+../Core/Src/main.cpp:419:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:505:6:void Error_Handler()	1
+../Core/Src/main.cpp:514:1:void __static_initialization_and_destruction_0(int, int)	4
+../Core/Src/main.cpp:514:1:cpp)	1

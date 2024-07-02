@@ -1,0 +1,8 @@
+../Core/Src/Timer.cpp:5:1:Timer::Timer()	16	static
+../Core/Src/Timer.cpp:12:1:Timer::Timer(uint32_t)	16	static
+../Core/Src/Timer.cpp:19:6:void Timer::start()	16	static
+../Core/Src/Timer.cpp:23:6:void Timer::stop()	16	static
+../Core/Src/Timer.cpp:27:6:void Timer::reset()	16	static
+../Core/Src/Timer.cpp:30:6:void Timer::setEventTime(uint32_t)	16	static
+../Core/Src/Timer.cpp:33:9:uint8_t Timer::isEvent()	16	static
+../Core/Src/Timer.cpp:48:9:uint8_t Timer::isOn()	16	static
