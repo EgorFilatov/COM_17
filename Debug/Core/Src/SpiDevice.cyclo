@@ -22,3 +22,5 @@
 ../Core/Src/SpiDevice.cpp:112:6:void SpiDevice::setUartSendNeeded(uint8_t)	1
 ../Core/Src/SpiDevice.cpp:116:12:DeviceType SpiDevice::getType()	1
 ../Core/Src/SpiDevice.cpp:119:6:void SpiDevice::setType(DeviceType)	1
+../Core/Src/SpiDevice.cpp:123:6:void SpiDevice::saveRxBuff(uint8_t)	2
+../Core/Src/SpiDevice.cpp:129:10:uint8_t* SpiDevice::getSaved()	1

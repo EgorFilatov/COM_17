@@ -120,6 +120,17 @@ void SpiDevice::setType(DeviceType type) {
 	this->type = type;
 }
 
+void SpiDevice::saveRxBuff(uint8_t buffIndex) {
+	for (uint8_t i = 0; i < 6; ++i) {
+		rxBuffSaved[i] = rxBuffPtr[buffIndex][i];
+	}
+}
+
+uint8_t* SpiDevice::getSaved() {
+	return rxBuffSaved;
+}
+
+
 
 
 

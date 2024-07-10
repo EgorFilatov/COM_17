@@ -29,6 +29,7 @@ private:
 	uint8_t rxBuff_1[6] { 0 };
 	uint8_t *rxBuffPtr[2] { rxBuff_0, rxBuff_1 };
 	uint8_t previousRxBuff[6] { 0 };
+	uint8_t rxBuffSaved[6] { 0 };
 
 	/* Буфер для передачи:
 	 0:		Контрольная сумма
@@ -85,6 +86,9 @@ public:
 
 	DeviceType getType();
 	void setType(DeviceType type);
+
+	void saveRxBuff(uint8_t buffIndex);
+	uint8_t* getSaved();
 };
 
 #endif

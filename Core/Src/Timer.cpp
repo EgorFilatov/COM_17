@@ -36,7 +36,8 @@ uint8_t Timer::isEvent() {
 			if ((timerClassCounter - timerStartTime) > eventTime) {
 				return 1;
 			}
-		} else {
+		}
+		if (timerClassCounter < timerStartTime) {
 			if ((0xFFFFFFFF - timerStartTime + timerClassCounter) > eventTime) {
 				return 1;
 			}

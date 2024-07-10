@@ -37,15 +37,13 @@ Timer uartTxPeriodTim(UART_TX_PERIOD_MS);
 Timer uartTxAfterEventTim(UART_TX_AFTER_EVENT_MS);
 Timer uartRxTim(UART_RX_TIME_MS);
 
-uint8_t uartTxPeriodTimFlag { 0 };
-uint8_t uartTxAfterEventTimFlag { 0 };
-
 /* Буфер uart:
  0-1: 	Стартовые байты(0x55,0xAA)
  2: 	Размер массива(0x05)
  3: 	Адрес платы (0xFF- команда на перезагрузку)
  4-7: 	Данные от платы
  8-9:	Контрольная сумма */
+
 uint8_t uartRxBuff_0[10] { 0 };
 uint8_t uartRxBuff_1[10] { 0 };
 uint8_t *uartRxBuffPtr[2] { uartRxBuff_0, uartRxBuff_1 };
@@ -113,6 +111,7 @@ void spiTxRx() {
 	SpiDevice::increaseCurrentDeviceIndex();
 
 	spiTxRxState = BUSY;
+	++c;
 	HAL_SPI_TransmitReceive_IT(&hspi1, spiDevice[currentDeviceIndex].getTxBuffPtr(currentBuffIndex ^ 1),
 									   spiDevice[currentDeviceIndex].getRxBuffPtr(currentBuffIndex ^ 1), 6);
 }
@@ -126,23 +125,29 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
 }
 
 void processSpiRxData() {
-	if (SpiDevice::getRxBuffState(currentBuffIndex) != READY) return;
-
-	SpiDevice::setRxBuffState(currentBuffIndex, BUSY);
+	uint8_t buffIndex = currentBuffIndex;
+	uint8_t rxBuffState = SpiDevice::getRxBuffState(buffIndex);
+	if (rxBuffState != READY) {
+		rxBuffState = SpiDevice::getRxBuffState(currentBuffIndex ^ 1);
+		if (rxBuffState != READY) {
+			return;
+		} else {
+			buffIndex ^= 1;
+		}
+	}
+	SpiDevice::setRxBuffState(buffIndex, BUSY);
 	for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
 		// Проверка контрольной суммы принятых по SPI данных
-		if (spiDevice[i].verifyRxChecksum(currentBuffIndex)) {
-			uint8_t *buffPtr = spiDevice[i].getRxBuffPtr(currentBuffIndex);
+		if (spiDevice[i].verifyRxChecksum(buffIndex)) {
+			uint8_t *buffPtr = spiDevice[i].getRxBuffPtr(buffIndex);
 			// Установка типа платы
 			spiDevice[i].setType((DeviceType) buffPtr[1]);
 			// Проверка на изменения в данных
-			if (spiDevice[i].isRxBuffChanged(currentBuffIndex)) {
+			if (spiDevice[i].isRxBuffChanged(buffIndex)) {
 				uartTxAfterEventTim.start();
-				spiDevice[i].saveRxBuff(currentBuffIndex);
 			}
 		}
 	}
-	SpiDevice::setRxBuffState(currentBuffIndex, READY);
 }
 
 void HAL_IncTick(void)
@@ -152,30 +157,23 @@ void HAL_IncTick(void)
 }
 
 void setUartSendNeededOnTimeEvent() {
-	if (uartTxPeriodTimFlag == 0) {
-		uartTxPeriodTimFlag = 1;
-		if (uartTxPeriodTim.isEvent()) {
-			uartTxPeriodTim.reset();
-			for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-				if (spiDevice[i].getType() != NOT_DEFINED) {
-					spiDevice[i].setUartSendNeeded(1);
-				}
+	if (uartTxPeriodTim.isEvent()) {
+		uartTxPeriodTim.reset();
+		for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
+			if (spiDevice[i].getType() != NOT_DEFINED) {
+				spiDevice[i].setUartSendNeeded(1);
 			}
 		}
 	}
 }
 
 void afterEventTimPeriodElapsed() {
-	if (uartTxAfterEventTimFlag == 0) {
-		uartTxAfterEventTimFlag = 1;
-		if (uartTxAfterEventTim.isOn()) {
-			if (uartTxAfterEventTim.isEvent()) {
-				uartTxAfterEventTim.stop();
-			} else {
-				for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-					if (spiDevice[i].getType() != NOT_DEFINED) {
-						spiDevice[i].setUartSendNeeded(1);
-					}
+	if (uartTxAfterEventTim.isOn()) {
+		if (uartTxAfterEventTim.isEvent()) {
+			uartTxAfterEventTim.stop();
+			for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
+				if (spiDevice[i].isUartSendNeeded()) {
+					spiDevice[i].setUartSendNeeded(0);
 				}
 			}
 		}
@@ -199,10 +197,12 @@ void uartTx() {
 		++i;
 	}
 	if (i != numOfSpiDevices) {
-		spiDevice[i].setUartSendNeeded(0);
+		if (uartTxAfterEventTim.isOn() == OFF) {
+			spiDevice[i].setUartSendNeeded(0);
+		}
 		// Заполнение данных от платы
-		for (uint8_t j = 0; j < 4; ++j) {
-			uartTxBuffPtr[currentBuffIndex][j + 4] = spiDevice[i].getSaved()[j + 2];
+		for (uint8_t i = 0; i < 4; ++i) {
+			uartTxBuffPtr[currentBuffIndex][i + 4] = spiDevice[i].getRxBuffPtr(currentBuffIndex)[i + 2];
 		}
 		// Заполнение номера порта
 		uartTxBuffPtr[currentBuffIndex][3] = i;
@@ -216,12 +216,9 @@ void uartTx() {
 		uartTxMinPeriodTim.reset();
 		uartTxState = BUSY;
 		// Передача данных по uart
-		++a;
 		HAL_UART_Transmit_DMA(&huart5, uartTxBuffPtr[currentBuffIndex], 10);
 	} else {
-		uartTxPeriodTimFlag = 0;
-		uartTxAfterEventTimFlag = 0;
-		//SpiDevice::setRxBuffState(currentBuffIndex, READY);
+		SpiDevice::setRxBuffState(currentBuffIndex, READY);
 	}
 }
 
@@ -275,8 +272,12 @@ void processUartRxBuff() {
 	for (uint8_t i = 0; i < 8; ++i) {
 		checksum += uartRxBuffPtr[currentUartRxBuffIndex][i];
 	}
+	uartTxBuffPtr[currentUartRxBuffIndex][8] = (uint8_t) checksum;
+	uartTxBuffPtr[currentUartRxBuffIndex][9] = (uint8_t) (checksum >> 8);
+	++b;
 	if ((uint8_t) checksum == uartRxBuffPtr[currentUartRxBuffIndex][8] &&
 		(uint8_t) (checksum >> 8) == uartRxBuffPtr[currentUartRxBuffIndex][9]) {
+		++a;
 		SpiDevice::setTxBuffState(currentBuffIndex, BUSY);
 		uint8_t currentDevice = uartRxBuffPtr[currentUartRxBuffIndex][3];
 		spiDevice[currentDevice].setTxBuffData(&(uartRxBuffPtr[currentUartRxBuffIndex][4]), currentBuffIndex);
@@ -306,7 +307,7 @@ int main(void)
 	  spiTxRx();
 	  processSpiRxData();
 	  setUartSendNeededOnTimeEvent();
-	  //afterEventTimPeriodElapsed();
+	  afterEventTimPeriodElapsed();
 	  uartTx();
 	  uartRx();
 	  uartRxTimElapsed();

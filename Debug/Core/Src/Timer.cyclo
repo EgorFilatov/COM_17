@@ -4,5 +4,5 @@
 ../Core/Src/Timer.cpp:23:6:void Timer::stop()	1
 ../Core/Src/Timer.cpp:27:6:void Timer::reset()	1
 ../Core/Src/Timer.cpp:30:6:void Timer::setEventTime(uint32_t)	1
-../Core/Src/Timer.cpp:33:9:uint8_t Timer::isEvent()	5
-../Core/Src/Timer.cpp:48:9:uint8_t Timer::isOn()	1
+../Core/Src/Timer.cpp:33:9:uint8_t Timer::isEvent()	6
+../Core/Src/Timer.cpp:49:9:uint8_t Timer::isOn()	1

@@ -1,317 +1,121 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2024 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
-#include <SpiDevice.h>
-#include <Timer.h>
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-#define READY 0
-#define BUSY 1
-#define UART_SPEED 				115200	//Скорость UART
-#define UART_TX_PERIOD_MS 		1500	//Период выдачи по UART (мс)
-#define UART_TX_MIN_PERIOD_MS 	2		//Минимальный период выдачи по UART (мс)
-#define UART_TX_AFTER_EVENT_MS	4000	//Время выдачи по UART после события ТС (мс)
-#define UART_RX_TIME_MS			5		//Время выделенное на прием посылки по UART (мс)
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
+
 TIM_HandleTypeDef htim6;
 
 UART_HandleTypeDef huart5;
 DMA_HandleTypeDef hdma_uart5_rx;
 DMA_HandleTypeDef hdma_uart5_tx;
 
-uint8_t a { 0 };
-uint8_t b { 0 };
-uint8_t c { 0 };
-uint8_t d { 0 };
+/* USER CODE BEGIN PV */
 
-uint8_t currentBuffIndex { 0 };
-uint8_t numOfSpiDevices { 0 };
+/* USER CODE END PV */
 
-uint8_t spiTxRxState { READY };
-uint8_t uartRxState { READY };
-uint8_t uartTxState { READY };
-
-Timer uartTxMinPeriodTim(UART_TX_MIN_PERIOD_MS);
-Timer uartTxPeriodTim(UART_TX_PERIOD_MS);
-Timer uartTxAfterEventTim(UART_TX_AFTER_EVENT_MS);
-Timer uartRxTim(UART_RX_TIME_MS);
-
-uint8_t uartTxPeriodTimFlag { 0 };
-uint8_t uartTxAfterEventTimFlag { 0 };
-
-/* Буфер uart:
- 0-1: 	Стартовые байты(0x55,0xAA)
- 2: 	Размер массива(0x05)
- 3: 	Адрес платы (0xFF- команда на перезагрузку)
- 4-7: 	Данные от платы
- 8-9:	Контрольная сумма */
-uint8_t uartRxBuff_0[10] { 0 };
-uint8_t uartRxBuff_1[10] { 0 };
-uint8_t *uartRxBuffPtr[2] { uartRxBuff_0, uartRxBuff_1 };
-uint8_t uartRxBuffState[2] { READY };
-uint8_t currentUartRxBuffIndex { 0 };
-
-uint8_t uartTxBuff_0[10] { 0x55, 0xAA, 0x05, 0, 0, 0, 0, 0, 0, 0 };
-uint8_t uartTxBuff_1[10] { 0x55, 0xAA, 0x05, 0, 0, 0, 0, 0, 0, 0 };
-uint8_t *uartTxBuffPtr[2] { uartTxBuff_0, uartTxBuff_1 };
-uint8_t currentUartTxBuffIndex { 0 };
-
-SpiDevice spiDevice[17];
-uint8_t iwdgFlag { 1 };
-
+/* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_UART5_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM6_Init(void);
+/* USER CODE BEGIN PFP */
 
-void spiDeviceInit() {
-	spiDevice[0].setCS(GPIOA, 10);
-	spiDevice[1].setCS(GPIOA, 9);
-	spiDevice[2].setCS(GPIOA, 8);
-	spiDevice[3].setCS(GPIOC, 9);
-	spiDevice[4].setCS(GPIOC, 8);
-	spiDevice[5].setCS(GPIOC, 7);
-	spiDevice[6].setCS(GPIOC, 6);
-	spiDevice[7].setCS(GPIOB, 15);
-	spiDevice[8].setCS(GPIOB, 14);
-	spiDevice[9].setCS(GPIOB, 13);
-	spiDevice[10].setCS(GPIOB, 12);
-	spiDevice[11].setCS(GPIOA, 3);
-	spiDevice[12].setCS(GPIOA, 2);
-	spiDevice[13].setCS(GPIOA, 1);
-	spiDevice[14].setCS(GPIOC, 3);
-	spiDevice[15].setCS(GPIOC, 2);
-	spiDevice[16].setCS(GPIOC, 1);
-	numOfSpiDevices = SpiDevice::getNumOfDevices();
-}
+/* USER CODE END PFP */
 
-void spiTxRx() {
-	if (spiTxRxState != READY ||
-		SpiDevice::getTxBuffState(currentBuffIndex) != READY ||
-		SpiDevice::getRxBuffState(currentBuffIndex) != READY) return;
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
 
-	uint8_t currentDeviceIndex = SpiDevice::getCurrentDeviceIndex();
-	uint8_t previousDeviceIndex = currentDeviceIndex - 1;
-	if (currentDeviceIndex == numOfSpiDevices || currentDeviceIndex == 0) {
-		SpiDevice::setCurrentDeviceIndex(0);
-		currentDeviceIndex = 0;
-		previousDeviceIndex = numOfSpiDevices - 1;
-		for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-			spiDevice[i].setTxBuff(spiDevice[i].getTxBuffPtr(currentBuffIndex), currentBuffIndex ^ 1);
-		}
-		SpiDevice::setTxBuffState(currentBuffIndex, BUSY);
-		SpiDevice::setRxBuffState(currentBuffIndex, BUSY);
-		currentBuffIndex ^= 1;
-		SpiDevice::setTxBuffState(currentBuffIndex, READY);
-		SpiDevice::setRxBuffState(currentBuffIndex, READY);
-	}
-	spiDevice[previousDeviceIndex].deselect();
-	spiDevice[currentDeviceIndex].select();
-	SpiDevice::increaseCurrentDeviceIndex();
+/* USER CODE END 0 */
 
-	spiTxRxState = BUSY;
-	HAL_SPI_TransmitReceive_IT(&hspi1, spiDevice[currentDeviceIndex].getTxBuffPtr(currentBuffIndex ^ 1),
-									   spiDevice[currentDeviceIndex].getRxBuffPtr(currentBuffIndex ^ 1), 6);
-}
-
-void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi) {
-	spiTxRxState = READY;
-}
-
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi) {
-
-}
-
-void processSpiRxData() {
-	if (SpiDevice::getRxBuffState(currentBuffIndex) != READY) return;
-
-	SpiDevice::setRxBuffState(currentBuffIndex, BUSY);
-	for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-		// Проверка контрольной суммы принятых по SPI данных
-		if (spiDevice[i].verifyRxChecksum(currentBuffIndex)) {
-			uint8_t *buffPtr = spiDevice[i].getRxBuffPtr(currentBuffIndex);
-			// Установка типа платы
-			spiDevice[i].setType((DeviceType) buffPtr[1]);
-			// Проверка на изменения в данных
-			if (spiDevice[i].isRxBuffChanged(currentBuffIndex)) {
-				uartTxAfterEventTim.start();
-				spiDevice[i].saveRxBuff(currentBuffIndex);
-			}
-		}
-	}
-	SpiDevice::setRxBuffState(currentBuffIndex, READY);
-}
-
-void HAL_IncTick(void)
-{
-  uwTick += uwTickFreq;
-  ++Timer::timerClassCounter;
-}
-
-void setUartSendNeededOnTimeEvent() {
-	if (uartTxPeriodTimFlag == 0) {
-		uartTxPeriodTimFlag = 1;
-		if (uartTxPeriodTim.isEvent()) {
-			uartTxPeriodTim.reset();
-			for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-				if (spiDevice[i].getType() != NOT_DEFINED) {
-					spiDevice[i].setUartSendNeeded(1);
-				}
-			}
-		}
-	}
-}
-
-void afterEventTimPeriodElapsed() {
-	if (uartTxAfterEventTimFlag == 0) {
-		uartTxAfterEventTimFlag = 1;
-		if (uartTxAfterEventTim.isOn()) {
-			if (uartTxAfterEventTim.isEvent()) {
-				uartTxAfterEventTim.stop();
-			} else {
-				for (uint8_t i = 0; i < numOfSpiDevices; ++i) {
-					if (spiDevice[i].getType() != NOT_DEFINED) {
-						spiDevice[i].setUartSendNeeded(1);
-					}
-				}
-			}
-		}
-	}
-}
-
-/*
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM6) //check if the interrupt comes from TIM1
-	{
-		++Timer::timerClassCounter;
-	}
-}
-*/
-
-void uartTx() {
-	if (uartTxState != READY || uartTxMinPeriodTim.isEvent() == 0) return;
-
-	uint8_t i { 0 };
-	while (spiDevice[i].isUartSendNeeded() == 0 && i <= numOfSpiDevices) {
-		++i;
-	}
-	if (i != numOfSpiDevices) {
-		spiDevice[i].setUartSendNeeded(0);
-		// Заполнение данных от платы
-		for (uint8_t j = 0; j < 4; ++j) {
-			uartTxBuffPtr[currentBuffIndex][j + 4] = spiDevice[i].getSaved()[j + 2];
-		}
-		// Заполнение номера порта
-		uartTxBuffPtr[currentBuffIndex][3] = i;
-		// Подсчет и заполнение контрольной суммы
-		uint16_t checksum { 0 };
-		for (uint8_t i = 0; i < 8; ++i) {
-			checksum += uartTxBuffPtr[currentBuffIndex][i];
-		}
-		uartTxBuffPtr[currentBuffIndex][8] = (uint8_t) checksum;
-		uartTxBuffPtr[currentBuffIndex][9] = (uint8_t) (checksum >> 8);
-		uartTxMinPeriodTim.reset();
-		uartTxState = BUSY;
-		// Передача данных по uart
-		++a;
-		HAL_UART_Transmit_DMA(&huart5, uartTxBuffPtr[currentBuffIndex], 10);
-	} else {
-		uartTxPeriodTimFlag = 0;
-		uartTxAfterEventTimFlag = 0;
-		//SpiDevice::setRxBuffState(currentBuffIndex, READY);
-	}
-}
-
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_0);
-	uartTxState = READY;
-}
-
-void uartRx() {
-	if (uartRxState != READY) return;
-
-	uartRxBuffState[currentUartRxBuffIndex] = BUSY;
-	currentUartRxBuffIndex ^= 1;
-	uartRxBuffState[currentUartRxBuffIndex] = READY;
-	uartRxState = BUSY;
-	HAL_UART_Receive_IT(&huart5, uartRxBuffPtr[currentUartRxBuffIndex ^ 1], 10);
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-	uartRxTim.stop();
-	uartRxState = READY;
-}
-
-void uartRxTimElapsed() {
-	if (uartRxState == BUSY && huart5.RxXferCount != 10 && uartRxTim.isOn() == OFF) {
-		uartRxTim.start();
-	}
-	if (uartRxTim.isOn()) {
-		if (uartRxTim.isEvent()) {
-			uartRxTim.stop();
-			HAL_UART_AbortReceive_IT(&huart5);
-			uartRxState = READY;
-		}
-	}
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
-	HAL_UART_AbortReceive_IT(&huart5);
-	__HAL_UART_CLEAR_PEFLAG(huart);
-	__HAL_UART_CLEAR_FEFLAG(huart);
-	__HAL_UART_CLEAR_NEFLAG(huart);
-	__HAL_UART_CLEAR_OREFLAG(huart);
-	uartRxState = READY;
-}
-
-void processUartRxBuff() {
-	if (uartRxBuffState[currentUartRxBuffIndex] != READY ) return;
-
-	uartRxBuffState[currentUartRxBuffIndex] = BUSY;
-	uint16_t checksum { 0 };
-	for (uint8_t i = 0; i < 8; ++i) {
-		checksum += uartRxBuffPtr[currentUartRxBuffIndex][i];
-	}
-	if ((uint8_t) checksum == uartRxBuffPtr[currentUartRxBuffIndex][8] &&
-		(uint8_t) (checksum >> 8) == uartRxBuffPtr[currentUartRxBuffIndex][9]) {
-		SpiDevice::setTxBuffState(currentBuffIndex, BUSY);
-		uint8_t currentDevice = uartRxBuffPtr[currentUartRxBuffIndex][3];
-		spiDevice[currentDevice].setTxBuffData(&(uartRxBuffPtr[currentUartRxBuffIndex][4]), currentBuffIndex);
-		spiDevice[currentDevice].calculateTxChecksum(currentBuffIndex);
-		SpiDevice::setTxBuffState(currentBuffIndex, READY);
-	}
-}
-
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
+
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
   SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_UART5_Init();
   MX_SPI1_Init();
   MX_TIM6_Init();
+  /* USER CODE BEGIN 2 */
 
-  //HAL_TIM_Base_Start_IT(&htim6);
-  uartTxPeriodTim.start();
-  uartTxMinPeriodTim.start();
+  /* USER CODE END 2 */
 
-  spiDeviceInit();
-
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  spiTxRx();
-	  processSpiRxData();
-	  setUartSendNeededOnTimeEvent();
-	  //afterEventTimPeriodElapsed();
-	  uartTx();
-	  uartRx();
-	  uartRxTimElapsed();
-	  processUartRxBuff();
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   }
+  /* USER CODE END 3 */
 }
 
 /**
