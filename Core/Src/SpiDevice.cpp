@@ -4,6 +4,7 @@ uint8_t SpiDevice::numOfDevices = 0;
 uint8_t SpiDevice::currentDeviceIndex = 0;
 uint8_t SpiDevice::rxBuffState[2] { READY };
 uint8_t SpiDevice::txBuffState[2] { READY };
+uint8_t SpiDevice::uartTxBuffState[2] { READY };;
 
 SpiDevice::SpiDevice() {
 	index = numOfDevices;
@@ -40,6 +41,9 @@ void SpiDevice::setTxBuffData(uint8_t *data, uint8_t buffIndex) {
 	}
 }
 
+uint8_t* SpiDevice::getUartTxBuffPtr(uint8_t buffIndex) {
+	return uartTxBuffPtr[buffIndex];
+}
 
 void SpiDevice::select() {
 	csPort->BSRR |= (1 << (csPin + 16));
@@ -120,15 +124,6 @@ void SpiDevice::setType(DeviceType type) {
 	this->type = type;
 }
 
-void SpiDevice::saveRxBuff(uint8_t buffIndex) {
-	for (uint8_t i = 0; i < 6; ++i) {
-		rxBuffSaved[i] = rxBuffPtr[buffIndex][i];
-	}
-}
-
-uint8_t* SpiDevice::getSaved() {
-	return rxBuffSaved;
-}
 
 
 
