@@ -43,6 +43,8 @@ private:
 	uint8_t uartTxBuff_1[10] { 0x55, 0xAA, 0x05, 0, 0, 0, 0, 0, 0, 0 };
 	uint8_t *uartTxBuffPtr[2] { uartTxBuff_0, uartTxBuff_1 };
 
+	uint8_t previousUartRxBuff[10] { 0 };
+
 	uint8_t index;
 	uint8_t uartSendNeeded;
 	DeviceType type;
@@ -66,6 +68,9 @@ public:
 	void setTxBuffData(uint8_t *data, uint8_t buffIndex);
 
 	uint8_t* getUartTxBuffPtr(uint8_t buffIndex);
+	void setUartTxBuff(uint8_t uartBuffIndex, uint8_t spiBuffIndex);
+
+	uint8_t isUartRxBuffChanged(uint8_t *uartRxBuff);
 
 	void select();
 	void deselect();

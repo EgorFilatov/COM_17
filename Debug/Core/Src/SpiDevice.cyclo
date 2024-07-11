@@ -5,21 +5,23 @@
 ../Core/Src/SpiDevice.cpp:32:6:void SpiDevice::setTxBuff(uint8_t*, uint8_t)	2
 ../Core/Src/SpiDevice.cpp:38:6:void SpiDevice::setTxBuffData(uint8_t*, uint8_t)	2
 ../Core/Src/SpiDevice.cpp:44:10:uint8_t* SpiDevice::getUartTxBuffPtr(uint8_t)	1
-../Core/Src/SpiDevice.cpp:48:6:void SpiDevice::select()	1
-../Core/Src/SpiDevice.cpp:52:6:void SpiDevice::deselect()	1
-../Core/Src/SpiDevice.cpp:56:6:void SpiDevice::calculateTxChecksum(uint8_t)	1
-../Core/Src/SpiDevice.cpp:62:9:uint8_t SpiDevice::verifyRxChecksum(uint8_t)	3
-../Core/Src/SpiDevice.cpp:70:9:uint8_t SpiDevice::isRxBuffChanged(uint8_t)	3
-../Core/Src/SpiDevice.cpp:82:9:static uint8_t SpiDevice::getCurrentDeviceIndex()	1
-../Core/Src/SpiDevice.cpp:85:6:static void SpiDevice::setCurrentDeviceIndex(uint8_t)	1
-../Core/Src/SpiDevice.cpp:88:6:static void SpiDevice::increaseCurrentDeviceIndex()	1
-../Core/Src/SpiDevice.cpp:91:6:static void SpiDevice::decreaseCurrentDeviceIndex()	1
-../Core/Src/SpiDevice.cpp:95:6:static void SpiDevice::setRxBuffState(uint8_t, uint8_t)	1
-../Core/Src/SpiDevice.cpp:98:9:static uint8_t SpiDevice::getRxBuffState(uint8_t)	1
-../Core/Src/SpiDevice.cpp:102:6:static void SpiDevice::setTxBuffState(uint8_t, uint8_t)	1
-../Core/Src/SpiDevice.cpp:105:9:static uint8_t SpiDevice::getTxBuffState(uint8_t)	1
-../Core/Src/SpiDevice.cpp:109:9:static uint8_t SpiDevice::getNumOfDevices()	1
-../Core/Src/SpiDevice.cpp:113:9:uint8_t SpiDevice::isUartSendNeeded()	1
-../Core/Src/SpiDevice.cpp:116:6:void SpiDevice::setUartSendNeeded(uint8_t)	1
-../Core/Src/SpiDevice.cpp:120:12:DeviceType SpiDevice::getType()	1
-../Core/Src/SpiDevice.cpp:123:6:void SpiDevice::setType(DeviceType)	1
+../Core/Src/SpiDevice.cpp:48:6:void SpiDevice::setUartTxBuff(uint8_t, uint8_t)	3
+../Core/Src/SpiDevice.cpp:64:9:uint8_t SpiDevice::isUartRxBuffChanged(uint8_t*)	3
+../Core/Src/SpiDevice.cpp:75:6:void SpiDevice::select()	1
+../Core/Src/SpiDevice.cpp:79:6:void SpiDevice::deselect()	1
+../Core/Src/SpiDevice.cpp:83:6:void SpiDevice::calculateTxChecksum(uint8_t)	1
+../Core/Src/SpiDevice.cpp:89:9:uint8_t SpiDevice::verifyRxChecksum(uint8_t)	3
+../Core/Src/SpiDevice.cpp:97:9:uint8_t SpiDevice::isRxBuffChanged(uint8_t)	3
+../Core/Src/SpiDevice.cpp:109:9:static uint8_t SpiDevice::getCurrentDeviceIndex()	1
+../Core/Src/SpiDevice.cpp:112:6:static void SpiDevice::setCurrentDeviceIndex(uint8_t)	1
+../Core/Src/SpiDevice.cpp:115:6:static void SpiDevice::increaseCurrentDeviceIndex()	1
+../Core/Src/SpiDevice.cpp:118:6:static void SpiDevice::decreaseCurrentDeviceIndex()	1
+../Core/Src/SpiDevice.cpp:122:6:static void SpiDevice::setRxBuffState(uint8_t, uint8_t)	1
+../Core/Src/SpiDevice.cpp:125:9:static uint8_t SpiDevice::getRxBuffState(uint8_t)	1
+../Core/Src/SpiDevice.cpp:129:6:static void SpiDevice::setTxBuffState(uint8_t, uint8_t)	1
+../Core/Src/SpiDevice.cpp:132:9:static uint8_t SpiDevice::getTxBuffState(uint8_t)	1
+../Core/Src/SpiDevice.cpp:136:9:static uint8_t SpiDevice::getNumOfDevices()	1
+../Core/Src/SpiDevice.cpp:140:9:uint8_t SpiDevice::isUartSendNeeded()	1
+../Core/Src/SpiDevice.cpp:143:6:void SpiDevice::setUartSendNeeded(uint8_t)	1
+../Core/Src/SpiDevice.cpp:147:12:DeviceType SpiDevice::getType()	1
+../Core/Src/SpiDevice.cpp:150:6:void SpiDevice::setType(DeviceType)	1

@@ -45,6 +45,33 @@ uint8_t* SpiDevice::getUartTxBuffPtr(uint8_t buffIndex) {
 	return uartTxBuffPtr[buffIndex];
 }
 
+void SpiDevice::setUartTxBuff(uint8_t uartBuffIndex, uint8_t spiBuffIndex) {
+	// Заполнение данных от платы
+	for (uint8_t i = 2; i < 6; ++i) {
+		uartTxBuffPtr[uartBuffIndex][i + 2] = rxBuffPtr[spiBuffIndex][i];
+	}
+	// Заполнение номера порта
+	uartTxBuffPtr[uartBuffIndex][3] = index;
+	// Подсчет и заполнение контрольной суммы
+	uint16_t checksum { 0 };
+	for (uint8_t i = 0; i < 8; ++i) {
+		checksum += uartTxBuffPtr[uartBuffIndex][i];
+	}
+	uartTxBuffPtr[uartBuffIndex][8] = (uint8_t) checksum;
+	uartTxBuffPtr[uartBuffIndex][9] = (uint8_t) (checksum >> 8);
+}
+
+uint8_t SpiDevice::isUartRxBuffChanged(uint8_t *uartRxBuff) {
+	uint8_t rxDataChanged { 0 };
+	for (uint8_t i = 0; i < 10; ++i) {
+		if (uartRxBuff[i] != previousUartRxBuff[i]) {
+			rxDataChanged = 1;
+		}
+		previousUartRxBuff[i] = uartRxBuff[i];
+	}
+	return rxDataChanged;
+}
+
 void SpiDevice::select() {
 	csPort->BSRR |= (1 << (csPin + 16));
 }
@@ -54,9 +81,9 @@ void SpiDevice::deselect() {
 }
 
 void SpiDevice::calculateTxChecksum(uint8_t buffIndex) {
-	txBuffPtr[buffIndex][0] = txBuffPtr[buffIndex][1] + txBuffPtr[buffIndex][2]
-			+ txBuffPtr[buffIndex][3] + txBuffPtr[buffIndex][4]
-			+ txBuffPtr[buffIndex][5];
+	txBuffPtr[buffIndex][0] = (uint8_t) (txBuffPtr[buffIndex][1]
+			+ txBuffPtr[buffIndex][2] + txBuffPtr[buffIndex][3]
+			+ txBuffPtr[buffIndex][4] + txBuffPtr[buffIndex][5]);
 }
 
 uint8_t SpiDevice::verifyRxChecksum(uint8_t buffIndex) {

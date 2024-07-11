@@ -84,8 +84,8 @@ all: main-build
 main-build: COM_17.elf secondary-outputs
 
 # Tool invocations
-COM_17.elf COM_17.map: $(OBJS) $(USER_OBJS) C:\Users\Egor\Desktop\STM32\COM_17\STM32F413RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "COM_17.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\Egor\Desktop\STM32\COM_17\STM32F413RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="COM_17.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+COM_17.elf COM_17.map: $(OBJS) $(USER_OBJS) D:\Enercom\Enercom\ R3\code\COM_17\STM32F413RGTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "COM_17.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\Enercom\Enercom R3\code\COM_17\STM32F413RGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="COM_17.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
